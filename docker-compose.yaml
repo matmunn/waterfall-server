@@ -1,0 +1,60 @@
+version: '2.0'
+services:
+    web:
+        build:
+            context: ./
+            dockerfile: web.docker
+        volumes:
+            - ./:/var/www
+        ports:
+            - "8181:80"
+        links:
+            - app
+    app:
+        build:
+            context: ./
+            dockerfile: app.docker
+        volumes:
+            - ./:/var/www
+        links:
+            - database
+            - slanger
+        environment:
+            - "DB_PORT=3306"
+            - "DB_HOST=database"
+            - "DB_USERNAME=root"
+            - "DB_PASSWORD=waterfall"
+            - "PUSHER_HOST=slanger"
+        labels:
+            deck-chores.laravel.interval: 'every minute'
+            deck-chores.laravel.command: 'php /var/www/artisan schedule:run'
+    database:
+        image: mysql:5.6
+        environment:
+            - "MYSQL_ROOT_PASSWORD=waterfall"
+            - "MYSQL_DATABASE=waterfall"
+        ports:
+            - "33061:3306"
+    redis:
+        image: redis:3.0
+        ports:
+            - "63791:6379"
+    cron:
+        image: funkyfuture/deck-chores
+        restart: unless-stopped
+        volumes:
+            - /var/run/docker.sock:/var/run/docker.sock
+        depends_on:
+            - app
+    slanger:
+        image: antillion/slanger
+        links:
+            - redis
+        environment:
+            - "REDIS_HOST=redis"
+            - "REDIS_PORT=6379"
+            - "REDIS_DB=waterfall"
+            - "APPKEY=waterfall"
+            - "APPSECRET=waterfall"
+        ports:
+            - "8484:8080"
