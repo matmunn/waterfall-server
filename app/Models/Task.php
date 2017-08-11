@@ -3,19 +3,30 @@
 namespace App\Models;
 
 use Carbon\Carbon;
+use App\Models\Note;
 use App\Models\User;
 use App\Models\Client;
+use App\Scopes\GroupScope;
 use Illuminate\Database\Eloquent\Model;
 
 class Task extends Model
 {
-    protected $table = "entries";
+    protected $table = "tasks";
 
     protected $fillable = [
         'description',
         'start_date',
         'end_date',
         'completed',
+    ];
+
+    /**
+     * The attributes that should be hidden for arrays.
+     *
+     * @var array
+     */
+    protected $hidden = [
+        'group_id',
     ];
 
     public $casts = [
@@ -33,6 +44,18 @@ class Task extends Model
     public $appends = [
         'blocks'
     ];
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::addGlobalScope(new GroupScope);
+    }
+
+    public function group()
+    {
+        return $this->belongsTo(Group::class);
+    }
 
     public function user()
     {

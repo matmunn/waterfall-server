@@ -58,3 +58,4 @@ services:
             - "APPSECRET=waterfall"
         ports:
             - "8484:8080"
+            - "45671:4567"

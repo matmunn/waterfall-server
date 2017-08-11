@@ -8,6 +8,10 @@ use App\Events\UserAdded;
 use App\Events\UserEdited;
 use App\Events\UserDeleted;
 use Illuminate\Http\Request;
+use App\Http\Requests\CreateUser;
+use App\Http\Requests\UpdateUser;
+use Illuminate\Support\Facades\Auth;
+use App\Exceptions\CategoryNotFoundException;
 
 class UserApiController extends Controller
 {
@@ -19,13 +23,20 @@ class UserApiController extends Controller
         return response()->json($users, 200, [], JSON_NUMERIC_CHECK);
     }
 
-    public function createUser(Request $request)
+    public function createUser(CreateUser $request)
     {
+        try {
+            $category = Category::find($request->category);
+        } catch (\Exception $e) {
+            return response('category-not-found-error', 422);
+        }
+
         $user = new User;
         $user->name = $request->name;
         $user->email = $request->email;
         $user->password = bcrypt($request->password);
-        $category = Category::find($request->category);
+        $user->group_id = Auth::user()->group_id;
+        
         $category->users()->save($user);
 
         $user->createToken()->save();
@@ -35,11 +46,14 @@ class UserApiController extends Controller
         return response()->json($user, 201, [], JSON_NUMERIC_CHECK);
     }
 
-    public function updateUser(User $user, Request $request)
+    public function updateUser(User $user, UpdateUser $request)
     {
         $user->name = $request->name;
         $user->email = $request->email;
-        $user->category_id = $request->category;
+        if (!$category = Category::find($request->category)) {
+            return response('category-not-found-error', 422);
+        }
+        $user->category_id = $category->id;
 
         if (strlen($request->password) > 0) {
             $user->password = bcrypt($request->password);

@@ -588,51 +588,6 @@
             "time": "2017-03-20 17:10:46"
         },
         {
-            "name": "itsgoingd/clockwork",
-            "version": "v1.13.1",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/itsgoingd/clockwork.git",
-                "reference": "9864bad522eba9f486e79c0cb7bc953967b64cf7"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/itsgoingd/clockwork/zipball/9864bad522eba9f486e79c0cb7bc953967b64cf7",
-                "reference": "9864bad522eba9f486e79c0cb7bc953967b64cf7",
-                "shasum": ""
-            },
-            "require": {
-                "php": ">=5.3.9",
-                "psr/log": "1.*"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "Clockwork\\": "Clockwork/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "itsgoingd",
-                    "email": "itsgoingd@luzer.sk",
-                    "homepage": "http://twitter.com/itsgoingd"
-                }
-            ],
-            "description": "Server-side component of Clockwork, a Chrome extension for PHP development",
-            "homepage": "http://github.com/itsgoingd/clockwork",
-            "keywords": [
-                "debugging",
-                "laravel",
-                "logging",
-                "profiling"
-            ],
-            "time": "2017-01-25 13:47:29"
-        },
-        {
             "name": "jakub-onderka/php-console-color",
             "version": "0.1",
             "source": {

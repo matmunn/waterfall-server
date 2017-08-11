@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use App\Events\CategoryAdded;
 use App\Events\CategoryEdited;
 use App\Events\CategoryDeleted;
+use Illuminate\Support\Facades\Auth;
+use App\Http\Requests\CreateOrUpdateCategory;
 
 class CategoryApiController extends Controller
 {
@@ -17,12 +19,13 @@ class CategoryApiController extends Controller
         return response()->json($categories, 200, [], JSON_NUMERIC_CHECK);
     }
 
-    public function createCategory(Request $request)
+    public function createCategory(CreateOrUpdateCategory $request)
     {
         $category = new Category;
         $category->description = $request->description;
         $category->hex_color = $request->color;
         $category->display_in_list = $request->visible;
+        $category->group_id = Auth::user()->group_id;
         $category->save();
 
         event(new CategoryAdded($category));
@@ -30,7 +33,7 @@ class CategoryApiController extends Controller
         return response()->json($category, 201, [], JSON_NUMERIC_CHECK);
     }
 
-    public function updateCategory(Category $category, Request $request)
+    public function updateCategory(Category $category, CreateOrUpdateCategory $request)
     {
         $category->description = $request->description;
         $category->hex_color = $request->color;

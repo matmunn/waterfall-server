@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\User;
+use App\Models\Group;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -15,21 +16,8 @@ use Illuminate\Support\Facades\Auth;
 |
 */
 
-Route::post('/login', function (Request $request) {
-    $creds = [
-    "email" => $request->get('email'),
-    "password" => $request->get("password")
-    ];
-
-    if (Auth::attempt($creds)) {
-        $user = User::where('email', $request->email)->first();
-        $user->makeVisible('api_token');
-
-        return response($user, 200);
-    }
-
-    return response("Error", 401);
-});
+Route::post('/login', 'AuthApiController@attemptLogin');
+Route::post('/register', 'AuthApiController@register');
 
 Route::group(['middleware' => ['auth:api']], function () {
     Route::post('/task', 'TaskApiController@createTask');

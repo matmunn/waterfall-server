@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Carbon\Carbon;
 use App\Models\Task;
+use App\Models\User;
 use App\Models\Client;
 use App\Events\TaskAdded;
 use App\Events\TaskEdited;
@@ -11,6 +12,10 @@ use App\Events\TaskDeleted;
 use Illuminate\Http\Request;
 use App\Events\TaskStatusChanged;
 use Illuminate\Support\Facades\Auth;
+use App\Exceptions\TaskTimeException;
+use App\Exceptions\UserNotFoundException;
+use App\Http\Requests\CreateOrUpdateTask;
+use App\Exceptions\ClientNotFoundException;
 
 class TaskApiController extends Controller
 {
@@ -47,13 +52,20 @@ class TaskApiController extends Controller
         $endDate = new Carbon($request->endTime);
 
         if (!$endDate->gt($startDate)) {
-            throw new \Exception("End date must be greater than start date");
+            throw new TaskTimeException("End date must be greater than start date");
+        }
+
+        if (!$client = Client::find($request->client)) {
+            throw new ClientNotFoundException("The requested client couldn't be found.");
+        }
+        if (!$user = User::find($request->user)) {
+            throw new UserNotFoundException("The requested user couldn't be found.");
         }
         
         $task->start_date = $startDate;
         $task->end_date = $endDate;
-        $task->user_id = $request->user;
-        $task->client_id = $request->client;
+        $task->user_id = $user->id;
+        $task->client_id = $client->id;
         $task->is_recurring = $request->recurring;
         $task->recurrence_period = $request->recurrencePeriod;
         $task->recurrence_type = $request->recurrenceType;
@@ -78,10 +90,12 @@ class TaskApiController extends Controller
         return response()->json($entries, 200, [], JSON_NUMERIC_CHECK);
     }
 
-    public function createTask(Request $request)
+    public function createTask(CreateOrUpdateTask $request)
     {
         $task = new Task;
-        $task->created_by = Auth::id();
+        $authUser = Auth::user();
+        $task->created_by = $authUser->id;
+        $task->group_id = $authUser->group_id;
 
         $startDate = new Carbon($request->startTime);
         if ($startDate->gt((new Carbon)->startOfWeek()) && $startDate->lt((new Carbon)->endOfWeek())) {
@@ -90,10 +104,12 @@ class TaskApiController extends Controller
 
         try {
             $task = $this->updateTaskDetails($task, $request);
-        } catch (\Exception $e) {
-            if ($e->getMessage() == "End date must be greater than start date") {
-                return response('time-error', 422);
-            }
+        } catch (TaskTimeException $e) {
+            return response()->json('time-error', 422);
+        } catch (ClientNotFoundException $e) {
+            return response()->json('client-not-found-error', 422);
+        } catch (UserNotFoundException $e) {
+            return response()->json('user-not-found-error', 422);
         }
 
         event(new TaskAdded($task));
@@ -101,9 +117,17 @@ class TaskApiController extends Controller
         return response($task, 201);
     }
 
-    public function updateTask(Task $task, Request $request)
+    public function updateTask(Task $task, CreateOrUpdateTask $request)
     {
-        $task = $this->updateTaskDetails($task, $request);
+        try {
+            $task = $this->updateTaskDetails($task, $request);
+        } catch (TaskTimeException $e) {
+            return response()->json('time-error', 422);
+        } catch (ClientNotFoundException $e) {
+            return response()->json('client-not-found-error', 422);
+        } catch (UserNotFoundException $e) {
+            return response()->json('user-not-found-error', 422);
+        }
 
         event(new TaskEdited($task));
 

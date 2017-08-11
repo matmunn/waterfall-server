@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Note;
 use App\Models\Task;
 use App\Models\User;
-use App\Models\Group;
-use App\Scopes\GroupScope;
+use App\Models\Client;
+use App\Models\Category;
 use Illuminate\Database\Eloquent\Model;
 
-class Client extends Model
+class Group extends Model
 {
     public $casts = [
         'id' => 'integer'
@@ -23,25 +24,28 @@ class Client extends Model
         'group_id',
     ];
 
-    protected static function boot()
+    public function users()
     {
-        parent::boot();
-
-        static::addGlobalScope(new GroupScope);
+        return $this->hasMany(User::class);
     }
 
-    public function group()
+    public function clients()
     {
-        return $this->belongsTo(Group::class);
+        return $this->hasMany(Client::class);
     }
 
     public function tasks()
     {
         return $this->hasMany(Task::class);
     }
-    
-    public function accountManager()
+
+    public function categories()
     {
-        return $this->belongsTo(User::class, 'account_manager_id');
+        return $this->hasMany(Category::class);
+    }
+
+    public function notes()
+    {
+        return $this->hasMany(Note::class);
     }
 }

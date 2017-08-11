@@ -3,10 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\Note;
+use App\Models\Task;
 use App\Events\NoteAdded;
 use App\Events\NoteEdited;
 use App\Events\NoteDeleted;
 use Illuminate\Http\Request;
+use App\Http\Requests\CreateNote;
+use App\Http\Requests\UpdateNote;
 use Illuminate\Support\Facades\Auth;
 
 class NoteApiController extends Controller
@@ -18,12 +21,21 @@ class NoteApiController extends Controller
         return response()->json($notes, 200, [], JSON_NUMERIC_CHECK);
     }
 
-    public function createNote(Request $request)
+    public function createNote(CreateNote $request)
     {
+        $authUser = Auth::user();
+
+        try {
+            $task = Task::findOrFail($request->entry);
+        } catch (\Exception $e) {
+            return response()->json('task-not-found-error', 422);
+        }
+
         $note = new Note;
         $note->message = $request->message;
-        $note->entry_id = $request->entry;
-        $note->created_by = Auth::id();
+        $note->entry_id = $task->id;
+        $note->created_by = $authUser->id;
+        $note->group_id = $authUser->group_id;
         $note->save();
 
         event(new NoteAdded($note));
@@ -31,7 +43,7 @@ class NoteApiController extends Controller
         return response()->json($note, 201, [], JSON_NUMERIC_CHECK);
     }
 
-    public function updateNote(Note $note, Request $request)
+    public function updateNote(Note $note, UpdateNote $request)
     {
         $note->message = $request->message;
         $note->save();
