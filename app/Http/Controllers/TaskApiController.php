@@ -10,6 +10,8 @@ use App\Events\TaskAdded;
 use App\Events\TaskEdited;
 use App\Events\TaskDeleted;
 use Illuminate\Http\Request;
+use App\Events\TaskCompleted;
+use App\Events\TaskIncomplete;
 use App\Events\TaskStatusChanged;
 use Illuminate\Support\Facades\Auth;
 use App\Exceptions\TaskTimeException;
@@ -149,6 +151,7 @@ class TaskApiController extends Controller
         $task->markCompleted();
 
         event(new TaskEdited($task));
+        event(new TaskCompleted($task));
 
         return response()->json("OK", 200, [], JSON_NUMERIC_CHECK);
     }
@@ -158,6 +161,7 @@ class TaskApiController extends Controller
         $task->markIncomplete();
 
         event(new TaskEdited($task));
+        event(new TaskIncomplete($task));
 
         return response()->json("OK", 200, [], JSON_NUMERIC_CHECK);
     }
