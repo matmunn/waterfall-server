@@ -33,6 +33,7 @@ class Task extends Model
         'completed' => 'boolean',
         'is_recurring' => 'boolean',
         'task_added_during_week' => 'boolean',
+        'is_absence' => 'boolean',
         'id' => 'integer',
     ];
 
