@@ -33,11 +33,14 @@ class AuthApiController extends Controller
 
     public function register(Request $request)
     {
-        $this->validate($request, [
-            'name' => ['required', 'string'],
-            'email' => ['required', 'email', 'unique:users,email'],
-            'password' => ['required', 'min:10'],
-        ]);
+        $this->validate(
+            $request,
+            [
+                'name' => ['required', 'string'],
+                'email' => ['required', 'email', 'unique:users,email'],
+                'password' => ['required', 'min:10'],
+            ]
+        );
 
         $group = new Group;
         $group->save();
